@@ -9,10 +9,17 @@
         state: present
         update_cache: yes
 
-    - name: Configure Apache for port 8080
-      lineinfile:
+    - name: Configure Apache ports
+      replace:
         path: /etc/apache2/ports.conf
-        line: "Listen 8080"
+        regexp: 'Listen 80'
+        replace: 'Listen 8080'
+
+    - name: Configure default virtual host for port 8080
+      replace:
+        path: /etc/apache2/sites-available/000-default.conf
+        regexp: '<VirtualHost \*:80>'
+        replace: '<VirtualHost *:8080>'
 
     - name: Create simple HTML page
       copy:
@@ -26,13 +33,20 @@
           </html>
         dest: /var/www/html/index.html
 
-    - name: Start Apache
+    - name: Restart Apache to apply configuration
       service:
         name: apache2
-        state: started
+        state: restarted
         enabled: yes
+
+    - name: Install UFW (if needed)
+      apt:
+        name: ufw
+        state: present
+      ignore_errors: yes
 
     - name: Allow port 8080
       ufw:
         rule: allow
         port: 8080
+      ignore_errors: yes
