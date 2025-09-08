@@ -1,0 +1,21 @@
+---
+- name: Remove Webserver
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Stop Apache
+      service:
+        name: apache2
+        state: stopped
+      ignore_errors: yes
+
+    - name: Remove Apache
+      apt:
+        name: apache2
+        state: absent
+        purge: yes
+
+    - name: Remove HTML file
+      file:
+        path: /var/www/html/index.html
+        state: absent

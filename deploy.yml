@@ -1,0 +1,38 @@
+---
+- name: Deploy Simple Webserver
+  hosts: webservers
+  become: yes
+  tasks:
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Configure Apache for port 8080
+      lineinfile:
+        path: /etc/apache2/ports.conf
+        line: "Listen 8080"
+
+    - name: Create simple HTML page
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head><title>SJSU VM</title></head>
+          <body>
+            <h1>Hello World from SJSU-{{ '1' if inventory_hostname == 'vm1' else '2' }}</h1>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+
+    - name: Start Apache
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Allow port 8080
+      ufw:
+        rule: allow
+        port: 8080
